@@ -1,0 +1,40 @@
+#!/bin/bash
+
+DISK_NAME=$1
+NEW_VOLUME_NAME=$2
+
+if [[ -z "$DISK_NAME" ]]; then
+  echo -n 'Enter the disk name that is going to be converted (e.g. disk2, you can get this from `diskutil list`): '
+  read DISK_NAME
+fi
+
+
+if [[ -z "$NEW_VOLUME_NAME" ]]; then
+  echo -n 'Enter the new name for your volume: '
+  read NEW_VOLUME_NAME
+fi
+
+echo "Partitioning, converting, and encrypting $DISK_NAME and naming it $NEW_VOLUME_NAME"
+echo "You'll be asked for a password shortly"
+
+diskutil partitionDisk "$DISK_NAME" GPT JHFS+ "$NEW_VOLUME_NAME" 25%
+diskutil coreStorage convert "$NEW_VOLUME_NAME"
+diskutil coreStorage encryptVolume "$NEW_VOLUME_NAME" 
+
+destination="/Volumes/$NEW_VOLUME_NAME"
+cp "templates/add-key" "$destination/"
+
+echo -n 'Do you have a key to put on the fob? (y/n) '
+read has_key
+
+if [[ "$has_key" =~ y|Y ]]; then
+  echo -n 'Enter the full path to the private key: '
+  read priv_key_path
+  cp "$priv_key_path" "$destination/id_rsa"
+else
+  ssh-keygen -f "$destination/id_rsa"
+  echo "Your new public key is ---"
+  cat "$destination/id_rsa.pub"
+fi
+
+echo 'Done.'
