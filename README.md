@@ -30,3 +30,27 @@ bin/setup
 1. Plug fob into new machine
 1. Enter passphrase
 1. Run `/Volumes/$YOUR_VOLUME_NAME/add-key $NUM_HOURS` to add your SSH key to the machine's ssh-agent for `$NUM_HOURS` hours.
+
+## Backups
+
+Because this drive contains information that you probably don't want to lose, you might be interested in a backup strategy.
+Personally, I created an encrypted DMG that I store in [keybase](keybase.io).
+The command for creating that DMG (after mounting your volume) is:
+
+```
+echo -n "$PASSWORD" | hdiutil create -encryption -stdinpass -srcfolder /Volumes/$YOUR_VOLUME_NAME/ ~/$ENCRYPTED_DMG_NAME.dmg
+```
+
+You can also not do the `echo` voodoo at the beginning and the command will prompt you for a password.
+
+With the DMG created, you can attach it as a volume using:
+
+```
+hdiutil attach ~/$ENCRYPTED_DMG_NAME.dmg
+```
+
+And detach said volume with:
+
+```
+hdiutil detach $DISK_VOLUME # You'll have to look this up.
+```
